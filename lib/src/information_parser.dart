@@ -91,7 +91,7 @@ class InformationParser
 
       final String arguments = restoreArguments(configuration.last);
 
-      return RouteInformation(location: '$location$arguments');
+      return RouteInformation(uri: Uri.parse('$location$arguments'));
     }
     return RouteInformation();
   }

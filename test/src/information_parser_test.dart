@@ -12,7 +12,7 @@ void main() {
     const InformationParser informationParser = InformationParser();
 
     var result = await informationParser
-        .parseRouteInformation(RouteInformation(location: uri.toString()));
+        .parseRouteInformation(RouteInformation(uri: uri));
 
     expect(result.length, uri.pathSegments.length);
   });
