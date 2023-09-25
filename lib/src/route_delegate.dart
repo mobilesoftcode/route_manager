@@ -76,13 +76,25 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   /// this method is called. Useful if called directly in the _build_ method. Defaults
   /// to _false_.
   ///
-  /// If you need to push a page and await for a returning value, use the
-  /// [pushAndWait] method instead.
-  void push(
+  /// You can await for a returning value, eventually specifying the expected type.
+  /// ``` dart
+  /// // Home page
+  /// onTap: () async {
+  ///   var result = await push<bool>("/settings");
+  ///   // Execution stops waiting for the result, then...
+  ///   print(result);
+  /// }
+  ///
+  /// // Settings page
+  /// onTap: () {
+  ///   pop(true);
+  /// }
+  /// ```
+  Future<T?> push<T>(
       {required String name,
       Map<String, Object?>? arguments,
       bool appendPath = true,
-      bool postFrame = false}) {
+      bool postFrame = false}) async {
     assert(
         name.startsWith("/"), "Name must start with `/` to match a RouteInfo");
 
@@ -113,7 +125,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
 
     var page =
         _createPage(RouteSettings(name: name, arguments: arguments), path);
-    pages.add(PageInfo(page: page, path: path));
+    final pageInfo = PageInfo<T>(page: page, path: path);
+    pages.add(pageInfo);
 
     if (postFrame) {
       WidgetsBinding.instance.addPostFrameCallback((ts) {
@@ -122,6 +135,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     } else {
       notifyListeners();
     }
+    return pageInfo.completer.future;
   }
 
   @Deprecated("Use 'push' instead. ")
@@ -140,12 +154,16 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///
   /// If there is only one page in stack, this method does nothing to avoid errors.
   /// Returns the popped page.
-  PageInfo? pop({bool ignoreWillPopScope = true}) {
+  PageInfo? pop({Object? value, bool ignoreWillPopScope = true}) {
     if (!ignoreWillPopScope) {}
     PageInfo? page;
     if (pages.length != 1) {
       page = pages.removeLast();
       pathUrl = RouteHelper.removeLastPathSegment(pathUrl);
+    }
+
+    if (value != null) {
+      page?.completer.complete(value);
     }
     notifyListeners();
     return page;

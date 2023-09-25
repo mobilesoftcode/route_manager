@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 /// This class contains a page widget and the corresponding path.
@@ -5,7 +7,7 @@ import 'package:flutter/material.dart';
 /// Usually it should be used with [RouteSettingsInfo] class.
 /// It also has an optional `willpop` method, to specify an event to fire
 /// when popping this page.
-class PageInfo {
+class PageInfo<T> {
   /// The page widget, such as a MaterialPage
   final Page page;
 
@@ -23,4 +25,8 @@ class PageInfo {
   /// The event is handled by the [RouteDelegate] thanks to
   /// [RouteManagerWillPopScope] widget.
   Future<bool> Function()? willpop;
+
+  /// This completer is used to handle returning values
+  /// from [Page] in [pop] method awaited by [push].
+  Completer<T?> completer = Completer<T>();
 }
