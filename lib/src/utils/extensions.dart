@@ -75,6 +75,22 @@ extension QueryMapExtension on Map {
     });
     return query ?? "";
   }
+
+  /// Search in this map if `key` is present. If not, return _null_.
+  /// Than, check if the value for that key corresponds to the T type, and then returns
+  /// null or the value itself accordingly.
+  T? getValueForKey<T>(String key) {
+    if (!containsKey(key)) {
+      return null;
+    }
+
+    if (this[key] is! T) {
+      return null;
+    }
+
+    return this[key];
+  }
+
 }
 
 extension ListExtension<T> on List<T> {

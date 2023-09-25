@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 /// It is used to set the route name, the route child widget to display
 /// when the path is pointing to this route, and eventually
 /// a function to map query from arguments can be provided.
-class RouteInfo {
+abstract class AbstractRouteInfo {
   /// The name of the route, obv. a path segment.
   /// It is mandatory and it must start with a `/`,
   /// otherwise an assertion error will be thrown.
@@ -27,9 +27,50 @@ class RouteInfo {
   /// a function to map query from arguments can be provided.
   ///
   /// `name` and `routeWidget` cannot be _null_.
-  RouteInfo({
+  AbstractRouteInfo({
     required this.name,
     required this.routeWidget,
+
     this.requiresAuthentication = false,
   }) : assert(name.startsWith("/"), "The route name must start with a `/`");
+}
+
+/// This class contains info about a route.
+/// It is used to set the route name, the route child widget to display
+/// when the path is pointing to this route, and eventually
+/// a function to map query from arguments can be provided.
+class RouteInfo extends AbstractRouteInfo {
+  /// This class contains info about a route.
+  /// It is used to set the route name, the route child widget to display
+  /// when the path is pointing to this route, and eventually
+  /// a function to map query from arguments can be provided.
+  ///
+  /// `name` and `routeWidget` cannot be _null_.
+  RouteInfo({
+    required super.name,
+    required super.routeWidget,
+    super.requiresAuthentication = false,
+  }) : assert(name.startsWith("/"), "The route name must start with a `/`");
+}
+
+class TypedRouteInfo extends AbstractRouteInfo {
+  /// The exepxected `Type` for the returned class of this path name
+  final Type type;
+
+  /// This class contains info about a route.
+  /// It is used to set the route name, the route child widget to display
+  /// when the path is pointing to this route, and eventually
+  /// a function to map query from arguments can be provided.
+  ///
+  /// `name`, `routeWidget` and `type` cannot be _null_.
+  TypedRouteInfo({
+    required super.name,
+    required super.routeWidget,
+    required this.type,
+    super.requiresAuthentication = false,
+  }) : assert(name.startsWith("/"), "The route name must start with a `/`");
+}
+
+mixin TypedRoute {
+  Map<String, dynamic> toMap() => {};
 }

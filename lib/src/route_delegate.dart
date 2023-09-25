@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:js_interop';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -66,7 +68,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   /// which widget should be shown.
   ///
   /// Optionally, `arguments` can be passed as parameter for the widget that is to be shown.
-  /// Arguments must be a [Map] and they can be managed by the [RouteInfo] builder parameter.
+  /// Arguments must be a [Map] and they can be managed by the [AbstractRouteInfo] builder parameter.
   ///
   /// If `appendPath` is _true_, the `name` of the page will be appended to the other
   /// pages' names of the stack in the path url, otherwise the `name` will be used
@@ -83,8 +85,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       Map<String, Object?>? arguments,
       bool appendPath = true,
       bool postFrame = false}) {
-    assert(
-        name.startsWith("/"), "Name must start with `/` to match a RouteInfo");
+    assert(name.startsWith("/"),
+        "Name must start with `/` to match an AbstractRouteInfo");
 
     // Verify last page in stack on mobile devices
     if (!kIsWeb && pages.isNotEmpty) {
@@ -113,6 +115,46 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
 
     var page =
         _createPage(RouteSettings(name: name, arguments: arguments), path);
+    pages.add(PageInfo(page: page, path: path));
+
+    if (postFrame) {
+      WidgetsBinding.instance.addPostFrameCallback((ts) {
+        notifyListeners();
+      });
+    } else {
+      notifyListeners();
+    }
+  }
+
+  void pushClass(TypedRoute typedRoute,
+      {bool postFrame = false, bool maskArguments = false}) {
+    var path = Uri.base.path
+        .replaceAll(routeManager.basePath ?? "", "")
+        .removeLastSlash(ignoreIfUnique: false);
+    final name = routeManager.routesInfo.singleWhereOrNull((element) {
+      return element is TypedRouteInfo &&
+          element.type == typedRoute.runtimeType;
+    })?.name;
+    if (name == null) {
+      assert(name != null,
+          "An AbstractRouteInfo with name $name should be included in routeInfo");
+      return;
+    }
+
+    path += name;
+    pathUrl = pathUrl.removeLastSlash(ignoreIfUnique: false);
+    pathUrl += name;
+
+    if (!kIsWeb) {
+      path = pathUrl;
+    }
+
+    final typedRouteMapped = typedRoute.toMap();
+    var args = maskArguments
+        ? base64.encode(utf8.encode(jsonEncode(typedRouteMapped)))
+        : typedRouteMapped;
+
+    var page = _createPage(RouteSettings(name: name, arguments: args), path);
     pages.add(PageInfo(page: page, path: path));
 
     if (postFrame) {
@@ -185,8 +227,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       {required String name,
       Map<String, Object?>? arguments,
       bool postFrame = false}) {
-    assert(
-        name.startsWith("/"), "Name must start with `/` to match a RouteInfo");
+    assert(name.startsWith("/"),
+        "Name must start with `/` to match an AbstractRouteInfo");
 
     if (pages.isNotEmpty) {
       pages.removeLast();
@@ -215,8 +257,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       bool postFrame = false,
       String? fullPath,
       Map<String, Object?>? arguments}) {
-    assert(
-        name.startsWith("/"), "Name must start with `/` to match a RouteInfo");
+    assert(name.startsWith("/"),
+        "Name must start with `/` to match an AbstractRouteInfo");
 
     var path = kIsWeb
         ? Uri.base.path.replaceAll(routeManager.basePath ?? "", "")
@@ -291,8 +333,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   /// ```
   Future<T> pushAndWait<T>(
       {required String name, Map<String, Object?>? arguments}) async {
-    assert(
-        name.startsWith("/"), "Name must start with `/` to match a RouteInfo");
+    assert(name.startsWith("/"),
+        "Name must start with `/` to match an AbstractRouteInfo");
 
     _resultCompleter = Completer<T>();
     push(name: name, arguments: arguments);
@@ -354,12 +396,35 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     //TODO implement a customizable 404
     Widget child = routeManager.defaultRouteWidget ?? Container();
 
-    RouteInfo? routeInfo = routeManager.routesInfo
+    AbstractRouteInfo? routeInfo = routeManager.routesInfo
         .singleWhereOrNull((element) => element.name == routeSettings.name);
 
+    var arguments = routeSettings.arguments;
+    if (arguments is Map &&
+        arguments
+            .convertToQueryString()
+            .startsWith(RouteHelper.base64QueryParam)) {
+      arguments = arguments
+          .convertToQueryString()
+          .replaceFirst(RouteHelper.base64QueryParam, "");
+    }
+    Map<String, Object?>? args;
+
+    if (arguments is Map<String, Object?>?) {
+      args = arguments;
+    } else if (arguments is String) {
+      String decoded = utf8.decode(base64.decode(arguments));
+      try {
+        args = jsonDecode(decoded);
+      } catch (e) {
+        if (kDebugMode) {
+          print(e);
+        }
+      }
+    }
+
     if (routeInfo != null) {
-      child = routeInfo
-          .routeWidget(routeSettings.arguments as Map<String, Object?>?);
+      child = routeInfo.routeWidget(args);
     }
 
     getPage() {
