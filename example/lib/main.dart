@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:route_manager/route_manager.dart';
+import 'package:route_manager_example/details_screen.dart';
 import 'detail_screen.dart';
 import 'home_screen.dart';
 import 'number_screen.dart';
@@ -7,10 +8,23 @@ import 'number_screen.dart';
 final routeManager = RouteManager(
   routesInfo: [
     RouteInfo(name: "/", routeWidget: (args) => const HomeScreen()),
-    RouteInfo(name: "/details", routeWidget: (args) => const DetailScreen()),
+    RouteInfo(name: "/detail", routeWidget: (args) => const DetailScreen()),
     RouteInfo(
         name: "/number-page",
-        routeWidget: (args) => NumberScreen(number: args?['number'])),
+        routeWidget: (args) {
+          var number = int.tryParse(args?.getValueForKey("number") ?? "0") ?? 0;
+          return NumberScreen(number: number);
+        }),
+    TypedRouteInfo(
+        name: "/details",
+        type: DetailsScreen,
+        routeWidget: (args) {
+          var struct = SimpleStruct.fromJson(args?["struct"] ?? "");
+
+          return DetailsScreen(
+            struct: struct,
+          );
+        }),
   ],
   initialRouteInfo: InitialRouteInfo(initialRouteName: "/"),
 );

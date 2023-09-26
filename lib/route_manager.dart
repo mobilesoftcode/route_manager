@@ -12,6 +12,7 @@ export 'src/models/route_info.dart';
 export 'src/widgets/router_manager.dart';
 export 'src/widgets/route_manager_will_pop_scope.dart';
 export 'src/models/initial_route_info.dart';
+export 'src/utils/extensions.dart' show QueryMapExtension;
 
 /// Creates a [RouteManager] to manage routing for a custom route.
 /// The app can have multiple route managers, but at least one to be used
@@ -30,12 +31,12 @@ export 'src/models/initial_route_info.dart';
 class RouteManager {
   /// The `routesInfo` list _must_ be provided to specify all the possibile Route pages
   /// managed by this [RouteManager].
-  /// The list must not contain more [RouteInfo] items with the same _name_.
+  /// The list must not contain more [AbstractRouteInfo] items with the same _name_.
   /// Furthermore, it must contain a route with the name specified in `initialRouteInfo`
   /// (or "/" as default initial route name).
   ///
-  /// For more information about [RouteInfo], check the class documentation.
-  final List<RouteInfo> routesInfo;
+  /// For more information about [AbstractRouteInfo], check the class documentation.
+  final List<AbstractRouteInfo> routesInfo;
 
   /// Optionally, this method can be provided to evaluate if a route info is enabled or not.
   /// For example, it can be useful in case of auth guards: some route could be disabled
@@ -51,7 +52,7 @@ class RouteManager {
   /// Routes _must_ be declared also in the `routesInfo` list.
   /// If _null_, than the default root path will be used, that is one named `/`, and no
   /// rules to redirect from the root path are set.
-  /// It's user responsability to manage this case, probably adding a [RouteInfo] item
+  /// It's user responsability to manage this case, probably adding a [AbstractRouteInfo] item
   /// in `routesInfo` list to take care of the default root page.
   final InitialRouteInfo? initialRouteInfo;
 
@@ -89,7 +90,7 @@ class RouteManager {
   ///
   /// All the routes in `routesInfo` that have `requiresAuthentication` set to _true_ will be
   /// wrapped with this widget. Note that the `child` argument passed here is the
-  /// widget specified in the relative [RouteInfo] class.
+  /// widget specified in the relative [AbstractRouteInfo] class.
   ///
   /// The `evaluateEnabledRoute` will be called before showing the `child` widget,
   /// to eventually redirect the user after authentication if he should not access the path.

@@ -1,3 +1,7 @@
+## 1.1.4
+* Added `pushWidget` API to allow pushing widgets instead of named routes.
+* Extended and simplified logic to retrieve values returned when popping pages awaiting the push
+
 ## 1.1.3
 * Initial GitHub release, updated dependencies. Requires Dart 3.
 

@@ -50,7 +50,17 @@ This class contains info about a route. It is used to set the route name, the ro
 var routeInfo = RouteInfo(
     name: "/home",
     requiresAuthentication: false,
-    routeWidget: (args) => Container(),
+    routeWidget: (args) => HomeScreen(),
+);
+```
+
+To manage routes pushing directly widgets instead of using names, you can use the `TypedRouteInfo` class. It's similar to `RouteInfo`, but required explicitally setting the type of the `Widget` that will be pushed in the navigation stack.
+``` dart
+var routeInfo = TypedRouteInfo(
+    name: "/home",
+    requiresAuthentication: false,
+    type: HomeScreen,
+    routeWidget: (args) => HomeScreen(),
 );
 ```
 
@@ -80,8 +90,9 @@ It must be used to initialize the routing system. To use it in the root `Materia
 final routeManager = RouteManager(
     routesInfo: // Must be provided to specify all the possibile Route pages
     [
-        RouteInfo(name: "/", routeWidget: (args) => Container()), 
-        RouteInfo(name: "/home", routeWidget: (args) => Container()), 
+        RouteInfo(name: "/", routeWidget: (args) => SplashScreen()), 
+        RouteInfo(name: "/home", routeWidget: (args) => HomeScreen()), 
+        TypedRouteInfo(name: "/test", routeWidget: (args) => TestScreen(), type: TestScreen), 
     ],
     initialRouteInfo: InitialRouteInfo(
       initialRouteName: "/home",
@@ -166,9 +177,14 @@ Note that you need the `context` to use the route delegate. If you want to use i
 
 **Router Delegate methods**
 
-- Push a new page in the stack. Optionally, a [Map] argument can be passed to be processed by the `routeWidget` builder as specified in the `routesInfo` list provided to the `RouteManager`.
+- Push a new page in the stack with name. Optionally, a [Map] argument can be passed to be processed by the `routeWidget` builder as specified in the `routesInfo` list provided to the `RouteManager`.
 ``` dart   
 RouteManager.of(context).pushPage(name: "/home", arguments: {'test': true});
+```
+
+- Push a new page in the stack as a `Widget`.
+``` dart   
+RouteManager.of(context).pushWidget(TestScreen());
 ```
 
 - Pop a page from the stack

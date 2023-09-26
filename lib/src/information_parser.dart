@@ -17,7 +17,7 @@ class InformationParser
   /// Optionally, an `initialRoute` can be provided to be used as initial page
   /// pushed in the stack. If provided, it _must_ be declared also in the `routesInfo` list.
   /// If _null_, than the default root path will be used, that is one named `/`.
-  /// It's user responsability to manage this case, probably adding a [RouteInfo] item
+  /// It's user responsability to manage this case, probably adding a [AbstractRouteInfo] item
   /// in `routesInfo` list to take care of the default root page.
   final String? initialRoute;
 
@@ -71,14 +71,20 @@ class InformationParser
       ];
     }
     for (var pathSegment in uri.pathSegments) {
-      routeSettings.add(RouteSettingsInfo(
+      routeSettings.add(
+        RouteSettingsInfo(
           routeSettings: RouteSettings(
             name: '/$pathSegment',
             arguments: pathSegment == uri.pathSegments.last
                 ? uri.queryParameters
                 : null,
           ),
-          path: uri.path));
+          path: uri.path.replaceRange(
+              uri.path.lastIndexOf(pathSegment) + pathSegment.length,
+              uri.path.length,
+              ""),
+        ),
+      );
     }
     return routeSettings;
   }
@@ -100,12 +106,17 @@ class InformationParser
   /// path, if route settings for the last path segment contains arguments.
   @visibleForTesting
   String restoreArguments(RouteSettingsInfo routeSettings) {
-    if (routeSettings.routeSettings.arguments != null &&
-        routeSettings.routeSettings.arguments is Map) {
-      Map args = routeSettings.routeSettings.arguments as Map;
-
-      return args.convertToQueryString();
+    var arguments = routeSettings.routeSettings.arguments;
+    if (arguments == null) {
+      return "";
     }
+
+    if (arguments is Map) {
+      return arguments.convertToQueryString();
+    } else if (arguments is String) {
+      return RouteHelper.base64QueryParam + arguments;
+    }
+
     return "";
   }
 }
