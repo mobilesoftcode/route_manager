@@ -101,24 +101,15 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   }) {
     assert(name.startsWith("/"),
         "Name must start with `/` to match an AbstractRouteInfo");
-
-    var path = Uri.base.path
-        .replaceAll(routeManager.basePath ?? "", "")
-        .removeLastSlash(ignoreIfUnique: false);
-
-    path += name;
+ 
     pathUrl = pathUrl.removeLastSlash(ignoreIfUnique: false) + name;
-
-    if (!kIsWeb) {
-      path = pathUrl;
-    }
 
     var args = maskArguments
         ? base64.encode(utf8.encode(jsonEncode(arguments)))
         : arguments;
 
-    var page = _createPage(RouteSettings(name: name, arguments: args), path);
-    final pageInfo = PageInfo<T>(page: page, path: path);
+    var page = _createPage(RouteSettings(name: name, arguments: args), pathUrl);
+    final pageInfo = PageInfo<T>(page: page, path: pathUrl);
     pages.add(pageInfo);
 
     if (postFrame) {
@@ -208,6 +199,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
 
     final rootPath =
         routeManager.initialRouteInfo?.initialRouteName ?? RouteHelper.rootName;
+    pathUrl = rootPath;
 
     var page =
         _createPage(RouteSettings(name: rootPath, arguments: null), rootPath);
@@ -245,9 +237,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///
   /// For further information, check docs for those methods.
   Future<T?> pushReplacement<T>(TypedRoute typedRoute,
-      {bool maskArguments = false,
-      bool postFrame = false}) {
-        
+      {bool maskArguments = false, bool postFrame = false}) {
     if (pages.isNotEmpty) {
       pages.removeLast();
     }
@@ -278,7 +268,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
         "Name must start with `/` to match a AbstractRouteInfo");
 
     var path = kIsWeb
-        ? Uri.base.path.replaceAll(routeManager.basePath ?? "", "")
+        ? Uri.base.fragment.replaceAll(routeManager.basePath ?? "", "")
         : pathUrl;
 
     path = RouteHelper.getPathSegmentWithName(name: name, path: path);
@@ -313,7 +303,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
         maskArguments: maskArguments,
         postFrame: postFrame);
   }
-  
+
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
