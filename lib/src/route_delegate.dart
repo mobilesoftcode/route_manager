@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -66,7 +67,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   /// which widget should be shown.
   ///
   /// Optionally, `arguments` can be passed as parameter for the widget that is to be shown.
-  /// Arguments must be a [Map] and they can be managed by the [RouteInfo] builder parameter.
+  /// Arguments must be a [Map] and they can be managed by the [AbstractRouteInfo] builder parameter.
   ///
   /// If `appendPath` is _true_, the `name` of the page will be appended to the other
   /// pages' names of the stack in the path url, otherwise the `name` will be used
@@ -75,6 +76,15 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   /// If `postFrame` is _true_, the page is pushed in the stack the frame after
   /// this method is called. Useful if called directly in the _build_ method. Defaults
   /// to _false_.
+  ///
+  /// If you need to push a page and await for a returning value, use the
+  /// [pushAndWait] method instead.
+  ///
+  /// If you want to pass a page as a [Widget] instead of name + arguments, you can use
+  /// the [pushWidget] method instead.
+  ///
+  /// If `maskArguments` is _true_, the query parameters in url are masked as a base64 string
+  /// to hide values on browsers. Defaults to _false_.
   ///
   /// You can await for a returning value, eventually specifying the expected type.
   /// ``` dart
@@ -90,13 +100,15 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///   pop(true);
   /// }
   /// ```
-  Future<T?> push<T>(
-      {required String name,
-      Map<String, Object?>? arguments,
-      bool appendPath = true,
-      bool postFrame = false}) async {
-    assert(
-        name.startsWith("/"), "Name must start with `/` to match a RouteInfo");
+  Future<T?> push<T>({
+    required String name,
+    Map<String, Object?>? arguments,
+    bool appendPath = true,
+    bool postFrame = false,
+    bool maskArguments = false,
+  }) {
+    assert(name.startsWith("/"),
+        "Name must start with `/` to match an AbstractRouteInfo");
 
     // Verify last page in stack on mobile devices
     if (!kIsWeb && pages.isNotEmpty) {
@@ -123,11 +135,69 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       path = pathUrl;
     }
 
-    var page =
-        _createPage(RouteSettings(name: name, arguments: arguments), path);
+    var args = maskArguments
+        ? base64.encode(utf8.encode(jsonEncode(arguments)))
+        : arguments;
+
+    var page = _createPage(RouteSettings(name: name, arguments: args), path);
     final pageInfo = PageInfo<T>(page: page, path: path);
     pages.add(pageInfo);
 
+    if (postFrame) {
+      WidgetsBinding.instance.addPostFrameCallback((ts) {
+        notifyListeners();
+      });
+    } else {
+      notifyListeners();
+    }
+    return pageInfo.completer.future;
+  }
+
+  /// Push a new page in the stack with a default transition animation.
+  /// Instead of passing a name and a [Map] of arguments, you can pass a [Widget] directly
+  /// to be pushed in the navigation stack. Note that the [Widget] must extend [TypedRoute]
+  /// and its route must be declared in the routes info list in [RouteManager], otherwise
+  /// no page will be pushed.
+  ///
+  /// If `postFrame` is _true_, the page is pushed in the stack the frame after
+  /// this method is called. Useful if called directly in the _build_ method. Defaults
+  /// to _false_.
+  ///
+  /// If `maskArguments` is _true_, the query parameters in url are masked as a base64 string
+  /// to hide values on browsers. Defaults to _false_.
+  Future<T?> pushWidget<T>(TypedRoute typedRoute,
+      {bool postFrame = false, bool maskArguments = false}) async {
+    var path = Uri.base.path
+        .replaceAll(routeManager.basePath ?? "", "")
+        .removeLastSlash(ignoreIfUnique: false);
+    final name = routeManager.routesInfo.singleWhereOrNull((element) {
+      return element is TypedRouteInfo &&
+          element.type == typedRoute.runtimeType;
+    })?.name;
+    if (name == null) {
+      assert(name != null,
+          "An AbstractRouteInfo with name $name should be included in routeInfo");
+      return null;
+    }
+
+    path += name;
+    pathUrl = pathUrl.removeLastSlash(ignoreIfUnique: false);
+    pathUrl += name;
+
+    if (!kIsWeb) {
+      path = pathUrl;
+    }
+
+    final typedRouteMapped = typedRoute.toMap();
+    var args = maskArguments
+        ? base64.encode(utf8.encode(jsonEncode(typedRouteMapped)))
+        : typedRouteMapped;
+
+    var page = _createPage(RouteSettings(name: name, arguments: args), path);
+    pages.add(PageInfo(page: page, path: path));
+
+    final pageInfo = PageInfo<T>(page: page, path: path);
+    pages.add(pageInfo);
     if (postFrame) {
       WidgetsBinding.instance.addPostFrameCallback((ts) {
         notifyListeners();
@@ -206,8 +276,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       {required String name,
       Map<String, Object?>? arguments,
       bool postFrame = false}) {
-    assert(
-        name.startsWith("/"), "Name must start with `/` to match a RouteInfo");
+    assert(name.startsWith("/"),
+        "Name must start with `/` to match an AbstractRouteInfo");
 
     if (pages.isNotEmpty) {
       pages.removeLast();
@@ -241,8 +311,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     Map<String, Object?>? arguments,
     Object? value,
   }) {
-    assert(
-        name.startsWith("/"), "Name must start with `/` to match a RouteInfo");
+    assert(name.startsWith("/"),
+        "Name must start with `/` to match a AbstractRouteInfo");
 
     var path = kIsWeb
         ? Uri.base.path.replaceAll(routeManager.basePath ?? "", "")
@@ -321,8 +391,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   @Deprecated("Use `push` and await for result instead")
   Future<T> pushAndWait<T>(
       {required String name, Map<String, Object?>? arguments}) async {
-    assert(
-        name.startsWith("/"), "Name must start with `/` to match a RouteInfo");
+    assert(name.startsWith("/"),
+        "Name must start with `/` to match an AbstractRouteInfo");
 
     _resultCompleter = Completer<T>();
     push(name: name, arguments: arguments);
@@ -385,12 +455,41 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     //TODO implement a customizable 404
     Widget child = routeManager.defaultRouteWidget ?? Container();
 
-    RouteInfo? routeInfo = routeManager.routesInfo
+    AbstractRouteInfo? routeInfo = routeManager.routesInfo
         .singleWhereOrNull((element) => element.name == routeSettings.name);
 
+    var arguments = routeSettings.arguments;
+    if (arguments is Map &&
+        arguments
+            .convertToQueryString()
+            .startsWith(RouteHelper.base64QueryParam)) {
+      arguments = arguments
+          .convertToQueryString()
+          .replaceFirst(RouteHelper.base64QueryParam, "");
+    }
+    Map<String, Object?>? args;
+
+    if (arguments is Map<String, Object?>?) {
+      args = arguments;
+    } else if (arguments is String) {
+      String decoded = utf8.decode(base64.decode(arguments));
+      try {
+        args = jsonDecode(decoded);
+      } catch (e) {
+        if (kDebugMode) {
+          print(e);
+        }
+      }
+    }
+
     if (routeInfo != null) {
-      child = routeInfo
-          .routeWidget(routeSettings.arguments as Map<String, Object?>?);
+      try {
+        child = routeInfo.routeWidget(args);
+      } catch (e) {
+        if (kDebugMode) {
+          print(e);
+        }
+      }
     }
 
     getPage() {
