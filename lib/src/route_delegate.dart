@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:js_interop';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -80,11 +79,19 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///
   /// If you need to push a page and await for a returning value, use the
   /// [pushAndWait] method instead.
-  void push(
-      {required String name,
-      Map<String, Object?>? arguments,
-      bool appendPath = true,
-      bool postFrame = false}) {
+  ///
+  /// If you want to pass a page as a [Widget] instead of name + arguments, you can use
+  /// the [pushWidget] method instead.
+  ///
+  /// If `maskArguments` is _true_, the query parameters in url are masked as a base64 string
+  /// to hide values on browsers. Defaults to _false_.
+  void push({
+    required String name,
+    Map<String, Object?>? arguments,
+    bool appendPath = true,
+    bool postFrame = false,
+    bool maskArguments = false,
+  }) {
     assert(name.startsWith("/"),
         "Name must start with `/` to match an AbstractRouteInfo");
 
@@ -113,8 +120,11 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       path = pathUrl;
     }
 
-    var page =
-        _createPage(RouteSettings(name: name, arguments: arguments), path);
+    var args = maskArguments
+        ? base64.encode(utf8.encode(jsonEncode(arguments)))
+        : arguments;
+
+    var page = _createPage(RouteSettings(name: name, arguments: args), path);
     pages.add(PageInfo(page: page, path: path));
 
     if (postFrame) {
@@ -126,7 +136,19 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     }
   }
 
-  void pushClass(TypedRoute typedRoute,
+  /// Push a new page in the stack with a default transition animation.
+  /// Instead of passing a name and a [Map] of arguments, you can pass a [Widget] directly
+  /// to be pushed in the navigation stack. Note that the [Widget] must extend [TypedRoute]
+  /// and its route must be declared in the routes info list in [RouteManager], otherwise
+  /// no page will be pushed.
+  ///
+  /// If `postFrame` is _true_, the page is pushed in the stack the frame after
+  /// this method is called. Useful if called directly in the _build_ method. Defaults
+  /// to _false_.
+  ///
+  /// If `maskArguments` is _true_, the query parameters in url are masked as a base64 string
+  /// to hide values on browsers. Defaults to _false_.
+  void pushWidget(TypedRoute typedRoute,
       {bool postFrame = false, bool maskArguments = false}) {
     var path = Uri.base.path
         .replaceAll(routeManager.basePath ?? "", "")
@@ -424,7 +446,13 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     }
 
     if (routeInfo != null) {
-      child = routeInfo.routeWidget(args);
+      try {
+        child = routeInfo.routeWidget(args);
+      } catch (e) {
+        if (kDebugMode) {
+          print(e);
+        }
+      }
     }
 
     getPage() {

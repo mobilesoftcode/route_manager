@@ -60,6 +60,9 @@ class NumericKeypad extends StatelessWidget {
             _buildNumberButton(3),
           ],
         ),
+        const SizedBox(
+          height: 20,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -68,6 +71,9 @@ class NumericKeypad extends StatelessWidget {
             _buildNumberButton(6),
           ],
         ),
+        const SizedBox(
+          height: 20,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -75,6 +81,9 @@ class NumericKeypad extends StatelessWidget {
             _buildNumberButton(8),
             _buildNumberButton(9),
           ],
+        ),
+        const SizedBox(
+          height: 20,
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

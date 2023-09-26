@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:route_manager/route_manager.dart';
-import 'package:route_manager_example/detail_screen.dart';
-import 'package:route_manager_example/test_screen.dart';
+import 'package:route_manager_example/details_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,49 +9,45 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Home")),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            "Welcome to an Example of the flutter competence routeManager",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              "Welcome to an Example of the flutter competence routeManager",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          ElevatedButton(
-              onPressed: () {
-                RouteManager.of(context).pushClass(TestScreen());
-              },
-              child: const Text("Test 1")),
-          ElevatedButton(
-              onPressed: () {
-                RouteManager.of(context).pushClass(
-                  TestScreen2(
-                    struct: SimpleStruct(
-                      title: "HOLA",
+            const SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  RouteManager.of(context).push(
+                    name: "/detail",
+                  );
+                },
+                child: const Text("Named push")),
+            const SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  RouteManager.of(context).pushWidget(
+                    DetailsScreen(
+                      struct: SimpleStruct(
+                        title: "Hello World",
+                      ),
                     ),
-                  ),
-                  maskArguments: true,
-                );
-              },
-              child: const Text("Test 2")),
-          ElevatedButton(
-              onPressed: () {
-                RouteManager.of(context).pushClass(TestScreen3(
-                  title: "HI",
-                ));
-              },
-              child: const Text("Test 3")),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.arrow_forward),
-        onPressed: () {
-          // RouteManager.of(context).push(name: "/details");
-          RouteManager.of(context).pushClass(TestScreen());
-        },
+                    maskArguments: true,
+                  );
+                },
+                child: const Text("Widget push")),
+          ],
+        ),
       ),
     );
   }

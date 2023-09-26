@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:route_manager/src/route_delegate.dart';
 
 /// This class contains info about a route.
 /// It is used to set the route name, the route child widget to display
@@ -30,7 +31,6 @@ abstract class AbstractRouteInfo {
   AbstractRouteInfo({
     required this.name,
     required this.routeWidget,
-
     this.requiresAuthentication = false,
   }) : assert(name.startsWith("/"), "The route name must start with a `/`");
 }
@@ -53,6 +53,10 @@ class RouteInfo extends AbstractRouteInfo {
   }) : assert(name.startsWith("/"), "The route name must start with a `/`");
 }
 
+/// This class contains info about a route.
+/// It is used to set the route name, the route child widget to display
+/// when the path is pointing to this route, and eventually
+/// a function to map query from arguments can be provided.
 class TypedRouteInfo extends AbstractRouteInfo {
   /// The exepxected `Type` for the returned class of this path name
   final Type type;
@@ -71,6 +75,22 @@ class TypedRouteInfo extends AbstractRouteInfo {
   }) : assert(name.startsWith("/"), "The route name must start with a `/`");
 }
 
+/// Implement this mixin to use a [Widget] as a page to be pushed in the navigation stack
+/// with the [RouteDelegate.pushWidget] method.
+/// ```dart
+/// class TestScreen extends StatelessWidget implements TypedRoute {
+///   final String title;
+///   const TestScreen({
+///     required this.title,
+///   })
+///
+///   @override
+///   Map<String, dynamic> toMap() {
+///     return {"title": title};
+///   }
+/// }
+/// ```
 mixin TypedRoute {
+  /// Override this method to map class attributes as query parameters for creating the route info.
   Map<String, dynamic> toMap() => {};
 }

@@ -71,14 +71,20 @@ class InformationParser
       ];
     }
     for (var pathSegment in uri.pathSegments) {
-      routeSettings.add(RouteSettingsInfo(
+      routeSettings.add(
+        RouteSettingsInfo(
           routeSettings: RouteSettings(
             name: '/$pathSegment',
             arguments: pathSegment == uri.pathSegments.last
                 ? uri.queryParameters
                 : null,
           ),
-          path: uri.path));
+          path: uri.path.replaceRange(
+              uri.path.lastIndexOf(pathSegment) + pathSegment.length,
+              uri.path.length,
+              ""),
+        ),
+      );
     }
     return routeSettings;
   }
