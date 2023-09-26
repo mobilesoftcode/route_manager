@@ -6,6 +6,9 @@ class RouteHelper {
   /// The default root name, usually a `/`
   static const String rootName = "/";
 
+  /// The query parameter for base64 encoded arguments in root
+  static const String base64QueryParam = "?q=";
+
   /// Recover first path segment of route from a String.
   ///
   /// ``` dart
