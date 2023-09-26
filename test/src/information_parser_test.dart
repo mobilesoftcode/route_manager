@@ -2,7 +2,9 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:route_manager/src/helpers/route_helper.dart';
 import 'package:route_manager/src/information_parser.dart';
+import 'package:route_manager/src/models/route_settings_info.dart';
 
 void main() {
   final Uri uri = Uri.parse(
@@ -25,7 +27,8 @@ void main() {
       expect(routeSettings.length, uri.pathSegments.length);
 
       for (var routeInformation in routeSettings) {
-        expect(routeInformation.path, "/test1/test2/test3");
+        expect(routeInformation.path,
+            endsWith(routeInformation.routeSettings.name ?? ""));
       }
 
       if (uri.query.isNotEmpty) {
@@ -50,6 +53,17 @@ void main() {
       expect(routeSettings.first.routeSettings.name, "/");
     });
   });
+
+  test(
+      "Restore route informations from route settings with empty configuration",
+      () {
+    const InformationParser informationParser = InformationParser();
+
+    final routeSettings = informationParser.restoreRouteInformation([]);
+
+    expect(routeSettings.uri.path, "/");
+  });
+
   test(
       "Restore route arguments from route settings with no restoreQueryFromArguments property set for route info",
       () {
@@ -64,5 +78,16 @@ void main() {
     arguments = informationParser.restoreArguments(routeSettings.last);
 
     expect(arguments, "?query1=test1&query2=test2");
+  });
+
+  test("Restore route arguments from route settings with String as argument",
+      () {
+    const InformationParser informationParser = InformationParser();
+
+    var arguments = informationParser.restoreArguments(RouteSettingsInfo(
+        routeSettings: const RouteSettings(name: "/test", arguments: "test"),
+        path: "/test"));
+
+    expect(arguments, "${RouteHelper.base64QueryParam}test");
   });
 }
