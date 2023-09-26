@@ -85,7 +85,22 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///
   /// If `maskArguments` is _true_, the query parameters in url are masked as a base64 string
   /// to hide values on browsers. Defaults to _false_.
-  void push({
+  ///
+  /// You can await for a returning value, eventually specifying the expected type.
+  /// ``` dart
+  /// // Home page
+  /// onTap: () async {
+  ///   var result = await push<bool>("/settings");
+  ///   // Execution stops waiting for the result, then...
+  ///   print(result);
+  /// }
+  ///
+  /// // Settings page
+  /// onTap: () {
+  ///   pop(true);
+  /// }
+  /// ```
+  Future<T?> push<T>({
     required String name,
     Map<String, Object?>? arguments,
     bool appendPath = true,
@@ -125,7 +140,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
         : arguments;
 
     var page = _createPage(RouteSettings(name: name, arguments: args), path);
-    pages.add(PageInfo(page: page, path: path));
+    final pageInfo = PageInfo<T>(page: page, path: path);
+    pages.add(pageInfo);
 
     if (postFrame) {
       WidgetsBinding.instance.addPostFrameCallback((ts) {
@@ -134,6 +150,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     } else {
       notifyListeners();
     }
+    return pageInfo.completer.future;
   }
 
   /// Push a new page in the stack with a default transition animation.
@@ -148,8 +165,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///
   /// If `maskArguments` is _true_, the query parameters in url are masked as a base64 string
   /// to hide values on browsers. Defaults to _false_.
-  void pushWidget(TypedRoute typedRoute,
-      {bool postFrame = false, bool maskArguments = false}) {
+  Future<T?> pushWidget<T>(TypedRoute typedRoute,
+      {bool postFrame = false, bool maskArguments = false}) async {
     var path = Uri.base.path
         .replaceAll(routeManager.basePath ?? "", "")
         .removeLastSlash(ignoreIfUnique: false);
@@ -160,7 +177,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     if (name == null) {
       assert(name != null,
           "An AbstractRouteInfo with name $name should be included in routeInfo");
-      return;
+      return null;
     }
 
     path += name;
@@ -179,6 +196,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     var page = _createPage(RouteSettings(name: name, arguments: args), path);
     pages.add(PageInfo(page: page, path: path));
 
+    final pageInfo = PageInfo<T>(page: page, path: path);
+    pages.add(pageInfo);
     if (postFrame) {
       WidgetsBinding.instance.addPostFrameCallback((ts) {
         notifyListeners();
@@ -186,6 +205,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     } else {
       notifyListeners();
     }
+    return pageInfo.completer.future;
   }
 
   @Deprecated("Use 'push' instead. ")
@@ -204,12 +224,19 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///
   /// If there is only one page in stack, this method does nothing to avoid errors.
   /// Returns the popped page.
-  PageInfo? pop({bool ignoreWillPopScope = true}) {
+  ///
+  /// If a `value` is specified, the completer associated to the popped paged will be
+  /// completed and the pushing route will be notified with the provided value.
+  PageInfo? pop({Object? value, bool ignoreWillPopScope = true}) {
     if (!ignoreWillPopScope) {}
     PageInfo? page;
     if (pages.length != 1) {
       page = pages.removeLast();
       pathUrl = RouteHelper.removeLastPathSegment(pathUrl);
+    }
+
+    if (value != null) {
+      page?.completer.complete(value);
     }
     notifyListeners();
     return page;
@@ -273,14 +300,19 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   /// with the provided `name` and `arguments` and, if specified, the `fullPath` is added.
   /// This behaviour can be avoided (so no action is taken if no page is found) by
   /// setting `pushIfNotPresent` parameter to _false_.
-  void popTo(
-      {required String name,
-      bool pushIfNotPresent = true,
-      bool postFrame = false,
-      String? fullPath,
-      Map<String, Object?>? arguments}) {
+  ///
+  /// If a `value` is specified, the completer associated to the popped paged will be
+  /// completed and the pushing route will be notified with the provided value.
+  void popTo({
+    required String name,
+    bool pushIfNotPresent = true,
+    bool postFrame = false,
+    String? fullPath,
+    Map<String, Object?>? arguments,
+    Object? value,
+  }) {
     assert(name.startsWith("/"),
-        "Name must start with `/` to match an AbstractRouteInfo");
+        "Name must start with `/` to match a AbstractRouteInfo");
 
     var path = kIsWeb
         ? Uri.base.path.replaceAll(routeManager.basePath ?? "", "")
@@ -294,7 +326,10 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       while (pages.last.path != page.path) {
         pop();
       }
-      return;
+      if (value != null) {
+        page.completer.complete(value);
+        return;
+      }
     }
 
     if (!pushIfNotPresent) {
@@ -353,6 +388,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///   popWith(true);
   /// }
   /// ```
+  @Deprecated("Use `push` and await for result instead")
   Future<T> pushAndWait<T>(
       {required String name, Map<String, Object?>? arguments}) async {
     assert(name.startsWith("/"),
@@ -386,6 +422,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///   popWith(true);
   /// }
   /// ```
+  @Deprecated("Use `pop` passing a value to return instead")
   void popWith(Object? value) {
     if (_resultCompleter != null) {
       pop();
