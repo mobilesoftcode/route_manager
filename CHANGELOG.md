@@ -1,15 +1,30 @@
+## 2.0.0
+* Fixed unintended behaviour with urls on web when pushing new pages that replaced entirely the url instead of adding a path segment.
+* Updated and fixed Readme with latest APIs
+* Added more tests
+
+**BREAKING** 
+Huge refactor of APIs signatures:
+* `push` has been renamed `pushNamed`
+* `pushWidget` has been renamed `push`
+* `pushAndPop` has been splitted and renamed `pushReplacementNamed` and `pushReplacement`
+* all the deprecated methods have been deleted
+
+
+
+
 ## 1.1.4
 * Added `pushWidget` API to allow pushing widgets instead of named routes.
 * Extended and simplified logic to retrieve values returned when popping pages awaiting the push
 
 ## 1.1.3
-* Initial GitHub release, updated dependencies. Requires Dart 3.
+Initial GitHub release, updated dependencies. Requires Dart 3.
 
 ## 1.1.2
-* Added example app.
+Added example app.
 
 ## 1.1.1
-* Added deprecation notice for old APIs, added new `push`, `popTo`, `pushAndWait`, `popAll` APIs as replacement.
+Added deprecation notice for old APIs, added new `push`, `popTo`, `pushAndWait`, `popAll` APIs as replacement.
 
 ## 1.1.0
 * **BREAKING** - Modified `initialRoute` parameter of `RouteManager` to `initialRouteInfo` to set a rule to redirect to a different root page.
