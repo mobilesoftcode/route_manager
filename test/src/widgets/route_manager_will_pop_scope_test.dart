@@ -124,7 +124,7 @@ void main() {
     );
 
     await widgetTester.tap(find.text("Test"));
-    await widgetTester.pump();
+    await widgetTester.pumpAndSettle();
 
     expect(find.text("Test"), findsOneWidget);
   });

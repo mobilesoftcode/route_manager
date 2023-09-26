@@ -176,7 +176,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     }
 
     PageInfo? page;
-    if (pages.length != 1) {
+    if (pages.length > 1) {
       page = pages.removeLast();
       pathUrl = RouteHelper.removeLastPathSegment(pathUrl);
     }
@@ -325,7 +325,6 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   }
 
   MaterialPage _createPage(RouteSettings routeSettings, String path) {
-    //TODO implement a customizable 404
     Widget child = routeManager.defaultRouteWidget ?? Container();
 
     AbstractRouteInfo? routeInfo = routeManager.routesInfo

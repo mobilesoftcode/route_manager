@@ -99,7 +99,7 @@ class InformationParser
 
       return RouteInformation(uri: Uri.parse('$location$arguments'));
     }
-    return RouteInformation();
+    return RouteInformation(uri: Uri.parse(RouteHelper.rootName));
   }
 
   /// This method is used to restore arguments in a query string to append to the
