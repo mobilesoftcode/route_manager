@@ -335,7 +335,6 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   }
 
   MaterialPage _createPage(RouteSettings routeSettings, String path) {
-    //TODO implement a customizable 404
     Widget child = routeManager.defaultRouteWidget ?? Container();
 
     AbstractRouteInfo? routeInfo = routeManager.routesInfo
