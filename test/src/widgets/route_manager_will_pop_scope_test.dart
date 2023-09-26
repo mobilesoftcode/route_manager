@@ -136,7 +136,7 @@ void main() {
         name: "/",
         routeWidget: (_) => Builder(builder: (context) {
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            RouteManager.of(context).push(name: "/test");
+            RouteManager.of(context).pushNamed("/test");
           });
           return Container();
         }),

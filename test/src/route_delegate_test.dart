@@ -61,29 +61,29 @@ void main() {
     test(
         "Test try to push same page twice should push only one page (on mobile devices)",
         () {
-      routerDelegate.push(name: "/", postFrame: false);
-      routerDelegate.push(name: "/", postFrame: false);
+      routerDelegate.pushNamed("/", postFrame: false);
+      routerDelegate.pushNamed("/", postFrame: false);
       expect(routerDelegate.pages.length, 1);
     });
 
     test("Test verify pages length after pushing two pages", () {
-      routerDelegate.push(name: "/", postFrame: false);
-      routerDelegate.push(name: "/test1", postFrame: false);
+      routerDelegate.pushNamed("/", postFrame: false);
+      routerDelegate.pushNamed("/test1", postFrame: false);
       expect(routerDelegate.pages.length, 2);
     });
 
     test("Test pathUrl after pushing pages", () {
-      routerDelegate.push(name: "/", postFrame: false);
-      routerDelegate.push(name: "/test1", postFrame: false);
+      routerDelegate.pushNamed("/", postFrame: false);
+      routerDelegate.pushNamed("/test1", postFrame: false);
       expect(routerDelegate.pathUrl, "/test1");
-      routerDelegate.push(name: "/test2", postFrame: false);
+      routerDelegate.pushNamed("/test2", postFrame: false);
       expect(routerDelegate.pathUrl, "/test1/test2");
     });
 
     test("Test path name for last page in stack", () {
-      routerDelegate.push(name: "/", postFrame: false);
-      routerDelegate.push(name: "/test1", postFrame: false);
-      routerDelegate.push(name: "/test2", postFrame: false);
+      routerDelegate.pushNamed("/", postFrame: false);
+      routerDelegate.pushNamed("/test1", postFrame: false);
+      routerDelegate.pushNamed("/test2", postFrame: false);
       expect(routerDelegate.pages.last.path, "/test1/test2");
       expect(routerDelegate.pages.last.page.name, "/test2");
     });

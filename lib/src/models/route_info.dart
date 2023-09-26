@@ -76,7 +76,7 @@ class TypedRouteInfo extends AbstractRouteInfo {
 }
 
 /// Implement this mixin to use a [Widget] as a page to be pushed in the navigation stack
-/// with the [RouteDelegate.pushWidget] method.
+/// with the [RouteDelegate.push] method.
 /// ```dart
 /// class TestScreen extends StatelessWidget implements TypedRoute {
 ///   final String title;
