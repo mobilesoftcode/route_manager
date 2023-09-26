@@ -26,8 +26,8 @@ class HomeScreen extends StatelessWidget {
             ),
             ElevatedButton(
                 onPressed: () {
-                  RouteManager.of(context).push(
-                    name: "/detail",
+                  RouteManager.of(context).pushNamed(
+                    "/detail",
                   );
                 },
                 child: const Text("Named push")),
@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
             ),
             ElevatedButton(
                 onPressed: () {
-                  RouteManager.of(context).pushWidget(
+                  RouteManager.of(context).push(
                     DetailsScreen(
                       struct: SimpleStruct(
                         title: "Hello World",

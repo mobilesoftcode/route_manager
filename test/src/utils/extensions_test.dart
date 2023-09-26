@@ -53,20 +53,34 @@ void main() {
       expect("/test1/test2/test3".fixPathWithSlash(), "/test1/test2/test3");
     });
   });
-  test("Convert map to query string", () {
-    Map map = {};
-    expect(map.convertToQueryString(), "");
 
-    map["query1"] = "test1";
-    expect(map.convertToQueryString(), "?query1=test1");
+  group("Extensions on Map", () {
+    test("Convert map to query string", () {
+      Map map = {};
+      expect(map.convertToQueryString(), "");
 
-    map["query2"] = 2;
-    expect(map.convertToQueryString(), "?query1=test1&query2=2");
+      map["query1"] = "test1";
+      expect(map.convertToQueryString(), "?query1=test1");
 
-    map["query3"] = true;
-    expect(map.convertToQueryString(), "?query1=test1&query2=2&query3=true");
+      map["query2"] = 2;
+      expect(map.convertToQueryString(), "?query1=test1&query2=2");
+
+      map["query3"] = true;
+      expect(map.convertToQueryString(), "?query1=test1&query2=2&query3=true");
+    });
+
+    test("Get value for key from map", () {
+      Map map = {};
+      expect(map.getValueForKey("query"), null);
+
+      map["query"] = "test";
+      expect(map.getValueForKey("query"), "test");
+
+      expect(map.getValueForKey<bool>("query"), null);
+
+      expect(map.getValueForKey<String>("query"), "test");
+    });
   });
-
   test("Find same items in list", () {
     var list1 = ["Test1", "Test2", "Test3"];
     expect(list1.containsTwoItemsWithSame((item1, item2) => item1 == item2),

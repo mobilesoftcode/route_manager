@@ -29,15 +29,7 @@ It's a widget to use in the widget tree to create a nested route, and it is init
 
 ## Getting started
 
-To get started, simply add the git package dependency in `pubspec.yaml` under `dependencies`
-
-```dart
-route_manager:
-    git:
-      url: https://github.com/mobilesoftcode/route_manager.git
-```
-
-If you have problems cloning the package, please contact the Competence Center.
+To get started, simply [install](https://pub.dev/packages/route_manager/install) the package adding the dependency
 
 ## Usage
 
@@ -177,44 +169,39 @@ Note that you need the `context` to use the route delegate. If you want to use i
 
 **Router Delegate methods**
 
-- Push a new page in the stack with name. Optionally, a [Map] argument can be passed to be processed by the `routeWidget` builder as specified in the `routesInfo` list provided to the `RouteManager`.
+- Push a new page in the stack with name. Optionally, a [Map] argument can be passed to be processed by the `routeWidget` builder as specified in the `routesInfo` list provided to the `RouteManager`. You can eventually await for a result popped by the pushed route.
 ``` dart   
-RouteManager.of(context).pushPage(name: "/home", arguments: {'test': true});
+var result = await RouteManager.of(context).pushNamed<bool>("/home", arguments: {"title": "Hello World"});
 ```
 
-- Push a new page in the stack as a `Widget`.
+- Push a new page in the stack as a `Widget`. You can eventually await for a result popped by the pushed route.
 ``` dart   
-RouteManager.of(context).pushWidget(TestScreen());
+var result = await RouteManager.of(context).push<bool>(TestScreen());
 ```
 
-- Pop a page from the stack
+- Pop a page from the stack. You can eventually return a value to the completer that pushed the page (see `push` or `pushNamed` APIs)
 ``` dart   
-var poppedPage = RouteManager.of(context).pop();
+var poppedPage = await RouteManager.of(context).pop(value: true);
 ```
 
-- Pop the last page in the stack and push a new one
+- Pop the last page in the stack and push a new one with name
 ``` dart   
-RouteManager.of(context).popAndPushPage(name: "/home", arguments: {'test': true});
+RouteManager.of(context).pushReplacementNamed("/home", arguments: {'test': true});
 ```
 
-- Push a new page in the stack and wait for a return value from the pushed page
+- Pop the last page in the stack and push a new one as a widget
 ``` dart   
-var result = await RouteManager.of(context).pushPageAndWait<bool>(name: "/home", arguments: {'test': true});
-```
-
-- Pop a page from the stack and return a value to the previous page
-``` dart   
-RouteManager.of(context).popWith(true);
+RouteManager.of(context).pushReplacement(TestScreen());
 ```
 
 - Pop all the pages in the stack and push the root page
 ``` dart   
-RouteManager.of(context).popToRoot();
+RouteManager.of(context).popAll();
 ```
 
 - Pop to the last page with specified name in the stack
 ``` dart   
-RouteManager.of(context).popToPage(name: "/home");
+RouteManager.of(context).popTo("/home");
 ```
 
 

@@ -124,7 +124,7 @@ void main() {
     );
 
     await widgetTester.tap(find.text("Test"));
-    await widgetTester.pump();
+    await widgetTester.pumpAndSettle();
 
     expect(find.text("Test"), findsOneWidget);
   });
@@ -136,7 +136,7 @@ void main() {
         name: "/",
         routeWidget: (_) => Builder(builder: (context) {
           WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-            RouteManager.of(context).push(name: "/test");
+            RouteManager.of(context).pushNamed("/test");
           });
           return Container();
         }),

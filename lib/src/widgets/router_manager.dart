@@ -29,8 +29,8 @@ class _RouterManagerState extends State<RouterManager> {
   late var _routeManager = widget.routeManager;
   @override
   void initState() {
-    _routeManager.routerDelegate.push(
-      name: _routeManager.initialRouteInfo?.initialRouteName ??
+    _routeManager.routerDelegate.pushNamed(
+      _routeManager.initialRouteInfo?.initialRouteName ??
           RouteHelper.rootName,
       postFrame: true,
     );
@@ -42,8 +42,8 @@ class _RouterManagerState extends State<RouterManager> {
     if (oldWidget.routeManager.initialRouteInfo?.initialRouteName !=
         widget.routeManager.initialRouteInfo?.initialRouteName) {
       _routeManager = widget.routeManager;
-      _routeManager.routerDelegate.push(
-        name: _routeManager.initialRouteInfo?.initialRouteName ??
+      _routeManager.routerDelegate.pushNamed(
+        _routeManager.initialRouteInfo?.initialRouteName ??
             RouteHelper.rootName,
         postFrame: true,
       );

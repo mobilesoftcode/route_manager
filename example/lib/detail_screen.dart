@@ -27,7 +27,7 @@ class DetailScreen extends StatelessWidget {
           ),
           NumericKeypad(onPressed: (int value) {
             RouteManager.of(context)
-                .push(name: '/number-page', arguments: {'number': value});
+                .pushNamed('/number-page', arguments: {'number': value});
           }),
         ],
       ),
