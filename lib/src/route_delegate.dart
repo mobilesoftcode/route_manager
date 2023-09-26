@@ -154,6 +154,9 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///
   /// If there is only one page in stack, this method does nothing to avoid errors.
   /// Returns the popped page.
+  ///
+  /// If a `value` is specified, the completer associated to the popped paged will be
+  /// completed and the pushing route will be notified with the provided value.
   PageInfo? pop({Object? value, bool ignoreWillPopScope = true}) {
     if (!ignoreWillPopScope) {}
     PageInfo? page;
@@ -227,12 +230,17 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   /// with the provided `name` and `arguments` and, if specified, the `fullPath` is added.
   /// This behaviour can be avoided (so no action is taken if no page is found) by
   /// setting `pushIfNotPresent` parameter to _false_.
-  void popTo(
-      {required String name,
-      bool pushIfNotPresent = true,
-      bool postFrame = false,
-      String? fullPath,
-      Map<String, Object?>? arguments}) {
+  ///
+  /// If a `value` is specified, the completer associated to the popped paged will be
+  /// completed and the pushing route will be notified with the provided value.
+  void popTo({
+    required String name,
+    bool pushIfNotPresent = true,
+    bool postFrame = false,
+    String? fullPath,
+    Map<String, Object?>? arguments,
+    Object? value,
+  }) {
     assert(
         name.startsWith("/"), "Name must start with `/` to match a RouteInfo");
 
@@ -248,7 +256,10 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       while (pages.last.path != page.path) {
         pop();
       }
-      return;
+      if (value != null) {
+        page.completer.complete(value);
+        return;
+      }
     }
 
     if (!pushIfNotPresent) {
@@ -307,6 +318,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///   popWith(true);
   /// }
   /// ```
+  @Deprecated("Use `push` and await for result instead")
   Future<T> pushAndWait<T>(
       {required String name, Map<String, Object?>? arguments}) async {
     assert(
@@ -340,6 +352,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///   popWith(true);
   /// }
   /// ```
+  @Deprecated("Use `pop` passing a value to return instead")
   void popWith(Object? value) {
     if (_resultCompleter != null) {
       pop();
