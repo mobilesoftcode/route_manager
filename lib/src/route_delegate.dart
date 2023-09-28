@@ -422,15 +422,15 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       return Future.value(true);
     }
 
+    if (await Navigator.of(navigatorKey!.currentContext!).maybePop()) {
+      return true;
+    }
+
     if (pages.length > 1) {
       pathUrl = RouteHelper.removeLastPathSegment(pathUrl);
       pages.removeLast();
       notifyListeners();
       return Future.value(true);
-    }
-
-    if (await Navigator.of(navigatorKey!.currentContext!).maybePop()) {
-      return true;
     }
 
     var exit = await _confirmAppExit();
