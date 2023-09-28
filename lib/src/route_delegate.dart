@@ -101,7 +101,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   }) {
     assert(name.startsWith("/"),
         "Name must start with `/` to match an AbstractRouteInfo");
- 
+
     pathUrl = pathUrl.removeLastSlash(ignoreIfUnique: false) + name;
 
     var args = maskArguments

@@ -90,7 +90,6 @@ extension QueryMapExtension on Map {
 
     return this[key];
   }
-
 }
 
 extension ListExtension<T> on List<T> {
