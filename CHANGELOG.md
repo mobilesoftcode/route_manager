@@ -1,5 +1,8 @@
+## 2.0.0+2
+Improved previous fix for page popped instead of eventually shown dialog when pressing physical back button on Android, having unintended behaviour on web
+
 ## 2.0.0+1
-* Fixed page popped instead of eventually shown dialog when pressing physical back button on Android 
+Fixed page popped instead of eventually shown dialog when pressing physical back button on Android 
 
 ## 2.0.0
 * Fixed unintended behaviour with urls on web when pushing new pages that replaced entirely the url instead of adding a path segment.
