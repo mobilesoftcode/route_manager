@@ -422,7 +422,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       return Future.value(true);
     }
 
-    if (await Navigator.of(navigatorKey!.currentContext!).maybePop()) {
+    if ((ModalRoute.of(navigatorKey!.currentContext!)?.isCurrent ?? false) &&
+        await Navigator.of(navigatorKey!.currentContext!).maybePop()) {
       return true;
     }
 
