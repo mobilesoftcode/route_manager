@@ -1,3 +1,8 @@
+## 2.0.1
+* Added `showDialog` method to `RouteDelegate`
+* Added `showModal` method to `RouteDelegate`
+* Fixed issues and unintended behaviours when calling `popRoute` with open modals or dialogs
+
 ## 2.0.0+2
 Improved previous fix for page popped instead of eventually shown dialog when pressing physical back button on Android, having unintended behaviour on web
 
