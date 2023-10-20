@@ -204,6 +204,16 @@ RouteManager.of(context).popAll();
 RouteManager.of(context).popTo("/home");
 ```
 
+- Show dialog
+``` dart   
+RouteManager.of(context).showDialog(builder: (context) => Dialog(child: Text("Hello world")));
+```
+
+- Show modal (either full screen or not, and eventually draggable)
+``` dart   
+RouteManager.of(context).showModal(builder: (context) => Scaffold(body: Text("Hello world")));
+```
+
 
 ## Additional information
 
