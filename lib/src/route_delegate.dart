@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
@@ -494,7 +495,7 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
         pages.removeLast();
         notifyListeners();
       }
-      return Future.value(true);
+      return true;
     }
 
     if ((isDialogShown || isModalShown) &&
@@ -506,14 +507,13 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
       pathUrl = RouteHelper.removeLastPathSegment(pathUrl);
       pages.removeLast();
       notifyListeners();
-      return Future.value(true);
+      return true;
     }
 
-    var exit = await _confirmAppExit();
+    var shouldExit = await _confirmAppExit() ?? false;
 
-    if (exit == true) {
-      SystemNavigator.pop();
-      return Future.value(exit);
+    if (shouldExit) {
+      exit(0);
     }
 
     return true;
