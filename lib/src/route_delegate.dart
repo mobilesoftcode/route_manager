@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
 import 'package:route_manager/route_manager.dart';
 import 'package:route_manager/src/models/route_settings_info.dart';
@@ -18,13 +18,13 @@ import 'utils/extensions.dart';
 /// [RouteDelegate] takes care of managing the pages of the application,
 /// pushing and popping pages when requested.
 ///
-/// Each page is a [Tuple2] with [RouteSettings] as first item to specify route details
+/// Each page is a [Tuple2] with [material.RouteSettings] as first item to specify route details
 /// such as name and arguments, and a [String] as second item to specify the full path
 /// for the provided page, depending on the stack. This is particularly useful on web.
-class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
+class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
     with
         ChangeNotifier,
-        PopNavigatorRouterDelegateMixin<List<RouteSettingsInfo>> {
+        material.PopNavigatorRouterDelegateMixin<List<RouteSettingsInfo>> {
   late final RouteManager _routeManager;
 
   /// [RouteDelegate] takes care of managing the pages of the application,
@@ -32,7 +32,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   ///
   /// It needs `routeManager`.
   ///
-  /// Each page is a [Tuple2] with [RouteSettings] as first item to specify route details
+  /// Each page is a [Tuple2] with [material.RouteSettings] as first item to specify route details
   /// such as name and arguments, and a [String] as second item to specify the full path
   /// for the provided page, depending on the stack. This is particularly useful on web.
   RouteDelegate({
@@ -45,21 +45,93 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
 
   /// The list of pages currently in the navigation stack.
   ///
-  /// Each page is a [Tuple2] with [RouteSettings] as first item to specify route details
+  /// Each page is a [Tuple2] with [material.RouteSettings] as first item to specify route details
   /// such as name and arguments, and a [String] as second item to specify the full path
   /// for the provided page, depending on the stack. This is particularly useful on web.
   final pages = <PageInfo>[];
 
   @override
-  final navigatorKey = GlobalKey<NavigatorState>();
+  final navigatorKey = material.GlobalKey<material.NavigatorState>();
 
   /// Returns the context of the Navigator widget in router delegate
-  BuildContext? get navigatorContext => navigatorKey?.currentContext;
+  material.BuildContext? get navigatorContext => navigatorKey?.currentContext;
 
   /// This is the current path given all the pages in the stack. It corresponds
   /// to the url on web, while it is used as helper for deeplink on mobile platform.
   late var pathUrl =
       routeManager.initialRouteInfo?.initialRouteName ?? RouteHelper.rootName;
+
+  /// This is used to know save if dialog is shown in [RouteDelegate.showDialog] or [RouteDelegate.popRoute] methods
+  bool _isDialogShown = false;
+
+  /// This is used to know if a dialog is shown (only if presented through [RouteDelegate.showDialog] method)
+  bool get isDialogShown =>
+      material.ModalRoute.of(navigatorContext!)?.isCurrent ?? _isDialogShown;
+
+  /// This is used to know save if modal is shown in [RouteDelegate.showModal] or [RouteDelegate.popRoute] methods
+  bool _isModalShown = false;
+
+  /// This is used to know if a modal is shown (only if presented through [RouteDelegate.showModal] method)
+  bool get isModalShown =>
+      material.ModalRoute.of(navigatorContext!)?.isCurrent ?? _isModalShown;
+
+  /// Displays a Material dialog above the current contents of the app,
+  /// with Material entrance and exit animations, modal barrier color,
+  /// and modal barrier behavior (dialog is dismissible with a tap on the barrier).
+  ///
+  /// This function takes a builder which typically builds a [material.Dialog] widget.
+  /// Content below the dialog is dimmed with a [material.ModalBarrier].
+  /// The widget returned by the builder does not share a context with the location that [material.showDialog] is originally called from.
+  /// Use a [material.StatefulBuilder] or a custom [material.StatefulWidget] if the dialog needs to update dynamically.
+  Future<T?> showDialog<T>({
+    required material.WidgetBuilder builder,
+    bool barrierDismissible = true,
+    Color? barrierColor = material.Colors.black54,
+    material.RouteSettings? routeSettings,
+  }) async {
+    _isDialogShown = true;
+    var res = await material.showDialog(
+      context: navigatorContext!,
+      builder: builder,
+      barrierDismissible: barrierDismissible,
+      barrierColor: barrierColor,
+      routeSettings: routeSettings,
+    );
+    _isDialogShown = false;
+    return res;
+  }
+
+  /// Shows a modal Material Design bottom sheet.
+  ///
+  /// A modal bottom sheet is an alternative to a menu or a dialog
+  /// and prevents the user from interacting with the rest of the app.
+  Future<T?> showModal<T>(
+      {bool fullScreen = false,
+      bool enableDrag = true,
+      bool isDismissible = false,
+      required material.Widget Function(material.BuildContext) builder}) async {
+    _isModalShown = true;
+    var res = await material.showModalBottomSheet(
+        isScrollControlled: true,
+        context: navigatorContext!,
+        isDismissible: isDismissible,
+        clipBehavior: material.Clip.hardEdge,
+        shape: const material.RoundedRectangleBorder(
+            borderRadius: material.BorderRadius.only(
+                topLeft: material.Radius.circular(25.0),
+                topRight: material.Radius.circular(25.0))),
+        enableDrag: enableDrag,
+        constraints: fullScreen
+            ? null
+            : material.BoxConstraints(
+                maxHeight: material.MediaQuery.of(navigatorContext!)
+                        .size
+                        .height -
+                    material.MediaQuery.of(navigatorContext!).viewPadding.top),
+        builder: builder);
+    _isModalShown = false;
+    return res;
+  }
 
   /// Push a new page in the stack with a default transition animation.
   /// It's mandatory to pass a `name`, that sould match one of the names provided in
@@ -73,7 +145,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   /// this method is called. Useful if called directly in the _build_ method. Defaults
   /// to _false_.
   ///
-  /// If you want to pass a page as a [Widget] instead of name + arguments, you can use
+  /// If you want to pass a page as a [material.Widget] instead of name + arguments, you can use
   /// the [push] method instead.
   ///
   /// If `maskArguments` is _true_, the query parameters in url are masked as a base64 string
@@ -108,12 +180,13 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
         ? base64.encode(utf8.encode(jsonEncode(arguments)))
         : arguments;
 
-    var page = _createPage(RouteSettings(name: name, arguments: args), pathUrl);
+    var page = _createPage(
+        material.RouteSettings(name: name, arguments: args), pathUrl);
     final pageInfo = PageInfo<T>(page: page, path: pathUrl);
     pages.add(pageInfo);
 
     if (postFrame) {
-      WidgetsBinding.instance.addPostFrameCallback((ts) {
+      material.WidgetsBinding.instance.addPostFrameCallback((ts) {
         notifyListeners();
       });
     } else {
@@ -123,8 +196,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   }
 
   /// Push a new page in the stack with a default transition animation.
-  /// Instead of passing a name and a [Map] of arguments, you can pass a [Widget] directly
-  /// to be pushed in the navigation stack. Note that the [Widget] must extend [TypedRoute]
+  /// Instead of passing a name and a [Map] of arguments, you can pass a [material.Widget] directly
+  /// to be pushed in the navigation stack. Note that the [material.Widget] must extend [TypedRoute]
   /// and its route must be declared in the routes info list in [RouteManager], otherwise
   /// no page will be pushed.
   ///
@@ -201,12 +274,12 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
         routeManager.initialRouteInfo?.initialRouteName ?? RouteHelper.rootName;
     pathUrl = rootPath;
 
-    var page =
-        _createPage(RouteSettings(name: rootPath, arguments: null), rootPath);
+    var page = _createPage(
+        material.RouteSettings(name: rootPath, arguments: null), rootPath);
     pages.add(PageInfo(page: page, path: rootPath));
 
     if (postFrame) {
-      WidgetsBinding.instance.addPostFrameCallback((ts) {
+      material.WidgetsBinding.instance.addPostFrameCallback((ts) {
         notifyListeners();
       });
     } else {
@@ -305,14 +378,14 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   }
 
   @override
-  Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+  material.Widget build(material.BuildContext context) {
+    material.WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       if (routeManager.onGenerateNavigatorContext != null &&
           navigatorContext != null) {
         routeManager.onGenerateNavigatorContext!(navigatorContext!);
       }
     });
-    return Navigator(
+    return material.Navigator(
       key: navigatorKey,
       pages: pages
           .map(
@@ -324,8 +397,10 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     );
   }
 
-  MaterialPage _createPage(RouteSettings routeSettings, String path) {
-    Widget child = routeManager.defaultRouteWidget ?? Container();
+  material.MaterialPage _createPage(
+      material.RouteSettings routeSettings, String path) {
+    material.Widget child =
+        routeManager.defaultRouteWidget ?? material.Container();
 
     AbstractRouteInfo? routeInfo = routeManager.routesInfo
         .singleWhereOrNull((element) => element.name == routeSettings.name);
@@ -365,7 +440,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     }
 
     getPage() {
-      return Builder(builder: (context) {
+      return material.Builder(builder: (context) {
         if (routeManager.initialRouteInfo?.initialRouteName ==
                 routeInfo?.name &&
             routeManager.initialRouteInfo?.redirectToPath != null) {
@@ -373,7 +448,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
               routeManager.initialRouteInfo?.redirectToPath!(context);
           if (redirectPath != null) {
             pushReplacementNamed(redirectPath, postFrame: true);
-            return routeManager.defaultRouteWidget ?? Container();
+            return routeManager.defaultRouteWidget ?? material.Container();
           }
         }
 
@@ -383,12 +458,12 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
         }
 
         popAll(postFrame: true);
-        return routeManager.defaultRouteWidget ?? Container();
+        return routeManager.defaultRouteWidget ?? material.Container();
       });
     }
 
-    return MaterialPage(
-      child: WillPopScope(
+    return material.MaterialPage(
+      child: material.WillPopScope(
           onWillPop:
               routeManager.allowSwipeToPopOnIOS ? null : () async => true,
           child: ((routeInfo?.requiresAuthentication ?? false) &&
@@ -403,7 +478,7 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
     );
   }
 
-  bool _onPopPage(Route route, dynamic result) {
+  bool _onPopPage(material.Route route, dynamic result) {
     if (!route.didPop(result)) return false;
     popRoute();
 
@@ -422,8 +497,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
       return Future.value(true);
     }
 
-    if ((ModalRoute.of(navigatorKey!.currentContext!)?.isCurrent ?? false) &&
-        await Navigator.of(navigatorKey!.currentContext!).maybePop()) {
+    if ((isDialogShown || isModalShown) &&
+        await material.Navigator.of(navigatorKey!.currentContext!).maybePop()) {
       return true;
     }
 
@@ -446,30 +521,32 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
 
   Future<bool?> _confirmAppExit() async {
     if (navigatorKey?.currentContext != null) {
-      var confirm = await showDialog<bool>(
+      _isDialogShown = true;
+      var confirm = await material.showDialog<bool>(
           context: navigatorKey!.currentContext!,
           builder: (context) {
             if (routeManager.closeAppAlertBuilder != null) {
               return routeManager.closeAppAlertBuilder!(
-                  () => Navigator.pop(context, false),
-                  () => Navigator.pop(context, true));
+                  () => material.Navigator.pop(context, false),
+                  () => material.Navigator.pop(context, true));
             }
-            return AlertDialog(
-              title: const Text('Chiudi App'),
-              content:
-                  const Text("Sei sicuro di voler chiudere l'applicazione?"),
+            return material.AlertDialog(
+              title: const material.Text('Chiudi App'),
+              content: const material.Text(
+                  "Sei sicuro di voler chiudere l'applicazione?"),
               actions: [
-                TextButton(
-                  child: const Text('Annulla'),
-                  onPressed: () => Navigator.pop(context, false),
+                material.TextButton(
+                  child: const material.Text('Annulla'),
+                  onPressed: () => material.Navigator.pop(context, false),
                 ),
-                TextButton(
-                  child: const Text('Conferma'),
-                  onPressed: () => Navigator.pop(context, true),
+                material.TextButton(
+                  child: const material.Text('Conferma'),
+                  onPressed: () => material.Navigator.pop(context, true),
                 ),
               ],
             );
           });
+      _isDialogShown = false;
       return confirm;
     } else {
       return Future(() => false);
@@ -490,8 +567,8 @@ class RouteDelegate extends RouterDelegate<List<RouteSettingsInfo>>
   @override
   List<RouteSettingsInfo> get currentConfiguration =>
       List.of(pages.map((e) => RouteSettingsInfo(
-          routeSettings:
-              RouteSettings(name: e.page.name, arguments: e.page.arguments),
+          routeSettings: material.RouteSettings(
+              name: e.page.name, arguments: e.page.arguments),
           path: e.path)));
 
   @override
