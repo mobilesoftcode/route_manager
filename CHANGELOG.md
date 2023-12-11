@@ -1,3 +1,6 @@
+## 2.0.1+1
+Fixed path url on web, not merging correctly page names
+
 ## 2.0.1
 * Added `showDialog` method to `RouteDelegate`
 * Added `showModal` method to `RouteDelegate`
