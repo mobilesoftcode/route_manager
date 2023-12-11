@@ -588,6 +588,8 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
       pages.add(PageInfo(page: page.page, path: page.path));
     }
 
+    pathUrl = pages.map((e) => e.page.name).join();
+
     notifyListeners();
   }
 }
