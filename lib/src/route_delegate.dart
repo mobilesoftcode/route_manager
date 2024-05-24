@@ -430,6 +430,32 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
       }
     }
 
+    // Verify if it's path parameter
+    if (routeInfo == null) {
+      final nameWithoutLastPathSegment = routeSettings.name?.replaceAll(
+              RouteHelper.getLastPathSegment(
+                routeSettings.name,
+              ),
+              "") ??
+          "";
+
+      if (nameWithoutLastPathSegment.isNotEmpty) {
+        AbstractRouteInfo? info = routeManager.routesInfo.singleWhereOrNull(
+            (element) =>
+                element.name.contains(nameWithoutLastPathSegment + "/:"));
+        final pathParameterWithoutColon = RouteHelper.getLastPathSegment(
+          info?.name,
+        ).replaceAll("/:", "");
+        routeInfo = info;
+        final pathParameter = RouteHelper.getLastPathSegment(
+          routeSettings.name,
+        ).replaceAll("/", "");
+        args == null
+            ? args = {pathParameterWithoutColon: pathParameter}
+            : args.putIfAbsent(pathParameterWithoutColon, () => pathParameter);
+      }
+    }
+
     if (routeInfo != null) {
       try {
         child = routeInfo.routeWidget(args);
