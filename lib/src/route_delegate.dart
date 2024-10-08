@@ -401,7 +401,7 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
   material.MaterialPage _createPage(
       material.RouteSettings routeSettings, String path) {
     material.Widget child =
-        routeManager.defaultRouteWidget ?? material.Container();
+        routeManager.defaultRouteWidget ?? const material.Scaffold();
 
     AbstractRouteInfo? routeInfo = routeManager.routesInfo
         .singleWhereOrNull((element) => element.name == routeSettings.name);
@@ -417,12 +417,12 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
     }
     Map<String, Object?>? args;
 
-    if (arguments is Map<String, Object?>?) {
-      args = arguments;
+    if (arguments is Map<String, Object?>) {
+      args = Map.of(arguments);
     } else if (arguments is String) {
       String decoded = utf8.decode(base64.decode(arguments));
       try {
-        args = jsonDecode(decoded);
+        args = Map.of(jsonDecode(decoded));
       } catch (e) {
         if (kDebugMode) {
           print(e);
@@ -430,9 +430,30 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
       }
     }
 
+    // Verify if it's path parameter
+    if (routeInfo == null) {
+      final nameWithoutLastPathSegment =
+          path.replaceAll(routeSettings.name ?? "", "");
+
+      if (nameWithoutLastPathSegment.isNotEmpty) {
+        AbstractRouteInfo? info = routeManager.routesInfo.singleWhereOrNull(
+            (element) =>
+                element.name.contains("$nameWithoutLastPathSegment/:"));
+        final pathParameterWithoutColon = RouteHelper.getLastPathSegment(
+          info?.name,
+        ).replaceAll("/:", "");
+        routeInfo = info;
+        final pathParameter = routeSettings.name?.replaceAll("/", "") ?? "";
+        args == null
+            ? args = Map.of({pathParameterWithoutColon: pathParameter})
+            : args.putIfAbsent(pathParameterWithoutColon, () => pathParameter);
+      }
+    }
+
     if (routeInfo != null) {
       try {
         child = routeInfo.routeWidget(args);
+        pages.removeWhere((e) => e.page.name == "/404");
       } catch (e) {
         if (kDebugMode) {
           print(e);
@@ -474,7 +495,7 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
       key: ValueKey(path +
           routeSettings.toString() +
           DateTime.now().millisecondsSinceEpoch.toString()),
-      name: routeSettings.name,
+      name: routeInfo == null ? "/404" : routeSettings.name,
       arguments: routeSettings.arguments,
     );
   }
