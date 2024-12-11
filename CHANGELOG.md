@@ -1,3 +1,7 @@
+## 2.0.2+1
+
+Fixed method to retrieve the last path segment of url
+
 ## 2.0.2
 
 * Added path parameter management for `RouteInfo`
