@@ -59,7 +59,7 @@ class RouteHelper {
   static String removeLastPathSegment(String? path) {
     assert(path?.startsWith("/") ?? true, 'Path is not valid');
     return path
-            ?.substring(0, path.indexOf(getLastPathSegment(path)))
+            ?.substring(0, path.lastIndexOf(getLastPathSegment(path)))
             .fixPathWithSlash() ??
         "";
   }
