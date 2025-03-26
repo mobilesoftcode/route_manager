@@ -36,6 +36,16 @@ class HomeScreen extends StatelessWidget {
             ),
             ElevatedButton(
                 onPressed: () {
+                  RouteManager.of(context).pushNamed(
+                    "/details/12345",
+                  );
+                },
+                child: const Text("Named push with id")),
+            const SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
+                onPressed: () {
                   RouteManager.of(context).push(
                     DetailsScreen(
                       struct: SimpleStruct(

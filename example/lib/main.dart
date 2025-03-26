@@ -10,6 +10,11 @@ final routeManager = RouteManager(
     RouteInfo(name: "/", routeWidget: (args) => const HomeScreen()),
     RouteInfo(name: "/detail", routeWidget: (args) => const DetailScreen()),
     RouteInfo(
+        name: "/details/:id",
+        routeWidget: (args) => const Scaffold(
+              body: Text("EVVOCI"),
+            )),
+    RouteInfo(
         name: "/number-page",
         routeWidget: (args) {
           var number = int.tryParse(args?.getValueForKey("number") ?? "0") ?? 0;

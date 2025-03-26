@@ -25,6 +25,16 @@ class DetailScreen extends StatelessWidget {
           Container(
             height: 50,
           ),
+          ElevatedButton(
+              onPressed: () {
+                RouteManager.of(context).pushNamed(
+                  "/details/12345",
+                );
+              },
+              child: const Text("Named push with id")),
+          const SizedBox(
+            height: 20,
+          ),
           NumericKeypad(onPressed: (int value) {
             RouteManager.of(context)
                 .pushNamed('/number-page', arguments: {'number': value});

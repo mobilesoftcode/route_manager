@@ -432,22 +432,48 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
 
     // Verify if it's path parameter
     if (routeInfo == null) {
-      final nameWithoutLastPathSegment =
-          path.replaceAll(routeSettings.name ?? "", "");
+      AbstractRouteInfo? info;
 
-      if (nameWithoutLastPathSegment.isNotEmpty) {
-        AbstractRouteInfo? info = routeManager.routesInfo.singleWhereOrNull(
-            (element) =>
-                element.name.contains("$nameWithoutLastPathSegment/:"));
-        final pathParameterWithoutColon = RouteHelper.getLastPathSegment(
-          info?.name,
-        ).replaceAll("/:", "");
-        routeInfo = info;
-        final pathParameter = routeSettings.name?.replaceAll("/", "") ?? "";
-        args == null
-            ? args = Map.of({pathParameterWithoutColon: pathParameter})
-            : args.putIfAbsent(pathParameterWithoutColon, () => pathParameter);
-      }
+      final pathWithoutLastPathSegment =
+          RouteHelper.removeLastPathSegment(path);
+
+      info = routeManager.routesInfo.singleWhereOrNull((element) {
+        if (!element.name.contains("/:")) {
+          return false;
+        }
+
+        final routeInfoNameWithoutPathParameter =
+            RouteHelper.removeLastPathSegment(element.name);
+        return pathWithoutLastPathSegment
+            .endsWith(routeInfoNameWithoutPathParameter);
+      });
+
+      // final pathWithoutRouteName =
+      //     path.replaceAll(routeSettings.name ?? "", "");
+
+      // if (pathWithoutRouteName.isNotEmpty) {
+      //   info = routeManager.routesInfo.singleWhereOrNull(
+      //       (element) => element.name.contains("$pathWithoutRouteName/:"));
+      // }
+      // if (info == null) {
+      //   var nameWithoutLastPathSegment = routeSettings.name?.replaceAll(
+      //           RouteHelper.getLastPathSegment(routeSettings.name), "") ??
+      //       "";
+      //   if (nameWithoutLastPathSegment.isEmpty) {
+      //     nameWithoutLastPathSegment = "/";
+      //   }
+      //   info = routeManager.routesInfo.singleWhereOrNull((element) =>
+      //       element.name.contains("$nameWithoutLastPathSegment/:"));
+      // }
+
+      final pathParameterWithoutColon = RouteHelper.getLastPathSegment(
+        info?.name,
+      ).replaceAll("/:", "");
+      routeInfo = info;
+      final pathParameter = routeSettings.name?.replaceAll("/", "") ?? "";
+      args == null
+          ? args = Map.of({pathParameterWithoutColon: pathParameter})
+          : args.putIfAbsent(pathParameterWithoutColon, () => pathParameter);
     }
 
     if (routeInfo != null) {
