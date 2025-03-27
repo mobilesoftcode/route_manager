@@ -470,7 +470,8 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
         info?.name,
       ).replaceAll("/:", "");
       routeInfo = info;
-      final pathParameter = routeSettings.name?.replaceAll("/", "") ?? "";
+      final pathParameter = RouteHelper.getLastPathSegment(routeSettings.name)
+          .replaceAll("/", "");
       args == null
           ? args = Map.of({pathParameterWithoutColon: pathParameter})
           : args.putIfAbsent(pathParameterWithoutColon, () => pathParameter);
