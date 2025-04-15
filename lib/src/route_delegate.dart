@@ -394,6 +394,7 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
           )
           .toList(),
       onPopPage: _onPopPage,
+      // onDidRemovePage: _onDidRemovePage,
       transitionDelegate: routeManager.transitionDelegate,
     );
   }
@@ -536,6 +537,7 @@ class RouteDelegate extends material.RouterDelegate<List<RouteSettingsInfo>>
 
   @override
   Future<bool> popRoute() async {
+    pages.last.completer.complete();
     if (pages.last.willpop != null) {
       var shouldPop = await pages.last.willpop!();
       if (shouldPop) {
